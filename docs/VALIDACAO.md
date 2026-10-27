@@ -19,8 +19,8 @@ Há avisos de depreciação das bibliotecas no Python 3.15 e de configuração l
 
 ## Não executado neste computador
 
-- `docker --version` e `docker compose version`: comando `docker` não encontrado. Portanto, build, subida dos dois containers, download/carregamento do modelo, busca semântica real e persistência após reiniciar os containers permanecem pendentes.
-- `gh auth status`: comando `gh` não encontrado. Nenhuma autenticação foi contornada; nenhum repositório foi criado, sobrescrito ou enviado. A existência de `growup-api-chromadb` na conta ainda não pôde ser consultada.
+- `docker --version` e `docker compose version`: comando `docker`. Portanto, build, subida dos dois containers, download/carregamento do modelo, busca semântica real e persistência após reiniciar os containers permanecem pendentes.
+- `gh auth status`: comando `gh`. Nenhuma autenticação foi contornada; nenhum repositório foi criado, sobrescrito ou enviado. A existência de `growup-api-chromadb` na conta ainda não pôde ser consultada.
 - Dados locais não foram abertos, migrados ou testados quanto à compatibilidade binária.
 - Nenhuma LLM foi chamada. `/query` retorna `503 LLM_NOT_CONFIGURED`.
 
