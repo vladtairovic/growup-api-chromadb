@@ -1,0 +1,58 @@
+name: growup-integrada
+
+services:
+  chroma:
+    image: chromadb/chroma:1.5.9
+    restart: unless-stopped
+    volumes:
+      - chroma_data:/data
+    networks:
+      - banco
+    # Sem porta publicada no host. A imagem oficial persiste em /data.
+
+  api:
+    build:
+      context: .
+      target: runtime
+    restart: unless-stopped
+    depends_on:
+      chroma:
+        condition: service_started
+    environment:
+      CHROMA_HOST: chroma
+      CHROMA_PORT: "8000"
+      CHROMA_SSL: "0"
+      CHROMA_TENANT: default_tenant
+      CHROMA_DATABASE: default_database
+      CHROMA_COLLECTION: ${CHROMA_COLLECTION:-qiskit_documentacao_multilingue}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2}
+      GROWUP_PERMITIR_DOWNLOAD: ${GROWUP_PERMITIR_DOWNLOAD:-1}
+      CHROMA_STARTUP_TIMEOUT: ${CHROMA_STARTUP_TIMEOUT:-120}
+      CHROMA_HTTP_TIMEOUT_SECONDS: ${CHROMA_HTTP_TIMEOUT_SECONDS:-30}
+      API_TIMEOUT_SECONDS: ${API_TIMEOUT_SECONDS:-60}
+      RAG_MAX_DISTANCE: ${RAG_MAX_DISTANCE:-}
+      AVALIACOES_PATH: /app/data/avaliacoes.jsonl
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    volumes:
+      - model_cache:/home/growup/.cache/huggingface
+      - api_data:/app/data
+    networks:
+      - banco
+      - saida
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 600s
+
+networks:
+  banco:
+    internal: true
+  saida:
+
+volumes:
+  chroma_data:
+  model_cache:
+  api_data:

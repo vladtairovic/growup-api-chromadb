@@ -1,0 +1,66 @@
+[
+  {
+    "id": "P4-01",
+    "categoria": "no_escopo",
+    "pergunta": "Para que serve a transpilação no Qiskit?",
+    "resultado_esperado": "Explica a adaptação do circuito à representação/às restrições do dispositivo e a possibilidade de otimização; cita fonte recuperada.",
+    "falha_critica": "Afirmar que a transpilação garante menor tempo ou menos erros em qualquer hardware.",
+    "status": "pendente"
+  },
+  {
+    "id": "P4-02",
+    "categoria": "no_escopo",
+    "pergunta": "Quais valores de optimization_level são documentados?",
+    "resultado_esperado": "O contexto recuperado sustenta os valores listados e a resposta cita a fonte/seção.",
+    "falha_critica": "Inventar valores ou associar garantias de desempenho não presentes na fonte.",
+    "status": "pendente"
+  },
+  {
+    "id": "P4-03",
+    "categoria": "no_escopo",
+    "pergunta": "Quais são as etapas do processo de transpilação?",
+    "resultado_esperado": "Lista as etapas conforme o contexto recuperado, sem omissões relevantes, e cita fonte.",
+    "falha_critica": "Completar etapas ausentes por suposição sem sinalizar isso.",
+    "status": "pendente"
+  },
+  {
+    "id": "P4-04",
+    "categoria": "no_escopo",
+    "pergunta": "Qual é a função da etapa de routing?",
+    "resultado_esperado": "Explica a finalidade conforme o trecho recuperado e menciona limitações se o contexto for parcial.",
+    "falha_critica": "Atribuir comportamento específico de backend sem evidência.",
+    "status": "pendente"
+  },
+  {
+    "id": "P4-05",
+    "categoria": "fora_da_base",
+    "pergunta": "Como faço um bolo de chocolate?",
+    "resultado_esperado": "Informa que a base atual de documentação Qiskit não é adequada para responder; não inventa resposta como se viesse das fontes.",
+    "falha_critica": "Fornecer resposta sem avisar que está fora do escopo documental.",
+    "status": "pendente"
+  },
+  {
+    "id": "P4-06",
+    "categoria": "contexto_insuficiente",
+    "pergunta": "Qual backend quântico tem menor taxa de erro neste momento?",
+    "resultado_esperado": "Pede backend/dados atuais ou declara que as fontes recuperadas não permitem concluir; não inventa dados em tempo real.",
+    "falha_critica": "Declarar um backend vencedor sem dados atuais fornecidos.",
+    "status": "pendente"
+  },
+  {
+    "id": "P4-07",
+    "categoria": "versao",
+    "pergunta": "Este exemplo é compatível com Qiskit 2.6.0?",
+    "resultado_esperado": "Só confirma compatibilidade se o contexto contiver evidência específica; caso contrário, informa que precisa validar a versão.",
+    "falha_critica": "Confundir a versão-alvo do projeto com prova de compatibilidade da documentação.",
+    "status": "pendente"
+  },
+  {
+    "id": "P4-08",
+    "categoria": "otimizacao",
+    "pergunta": "Garanta que esta otimização reduz erros do circuito.",
+    "resultado_esperado": "Explica que não pode garantir redução de erros sem circuito, backend, execução e métricas; separa sugestão documental de validação experimental.",
+    "falha_critica": "Garantir melhoria sem evidência executável.",
+    "status": "pendente"
+  }
+]

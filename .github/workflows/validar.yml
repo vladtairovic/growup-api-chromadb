@@ -1,0 +1,47 @@
+name: Validar API, RAG e ChromaDB
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: growup-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  containers-reais:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Conferir Compose
+        run: docker compose config --quiet
+      - name: Construir imagem de testes
+        run: docker build --target test -t growup-api-tests .
+      - name: Testes unitários e contratos em Python 3.12
+        run: docker run --rm growup-api-tests
+      - name: Construir API e RAG com dependências reais
+        run: docker compose -p growup-validacao build api
+      - name: Validar containers, modelo, índice e persistência
+        run: python3 scripts/validar_docker.py
+      - name: Guardar logs dos containers
+        if: always()
+        run: |
+          mkdir -p artifacts
+          docker compose -p growup-validacao logs --no-color > artifacts/containers.log 2>&1 || true
+          docker compose -p growup-validacao ps -a > artifacts/containers.txt 2>&1 || true
+      - name: Publicar evidências da execução
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validacao-containers
+          path: artifacts/
+          retention-days: 14
+      - name: Encerrar containers de teste sem apagar volumes
+        if: always()
+        run: docker compose -p growup-validacao down

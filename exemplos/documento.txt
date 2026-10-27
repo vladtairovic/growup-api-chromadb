@@ -1,0 +1,3 @@
+Material sintético para demonstrar a API.
+Qiskit é o tema deste exemplo. A validação e a otimização reais de circuitos pertencem à equipe responsável por Qiskit.
+Este arquivo não é documentação oficial nem evidência de desempenho.

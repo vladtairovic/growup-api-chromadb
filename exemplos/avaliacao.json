@@ -1,0 +1,11 @@
+{
+  "case_id": "DEMO-01",
+  "evaluator": "Avaliador da demonstracao",
+  "ratings": [
+    {"criterion":"pertinencia","score":4,"evidence":"Nota ficticia para demonstrar o calculo."},
+    {"criterion":"coerencia","score":4,"evidence":"Nota ficticia para demonstrar o calculo."},
+    {"criterion":"aderencia","score":4,"evidence":"Nota ficticia para demonstrar o calculo."},
+    {"criterion":"clareza","score":4,"evidence":"Nota ficticia para demonstrar o calculo."},
+    {"criterion":"falhas","score":4,"evidence":"Nota ficticia para demonstrar o calculo."}
+  ]
+}
