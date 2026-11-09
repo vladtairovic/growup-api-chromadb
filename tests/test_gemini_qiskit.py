@@ -71,7 +71,10 @@ def test_qiskit_http_real(contexto):
     {"qasm":"OPENQASM 2.0; qreg q[33];"}])
 def test_qiskit_entrada_invalida(contexto, body):
     client, _ = contexto
-    assert client.post("/qiskit/optimize", json=body).status_code == 422
+    r = client.post("/qiskit/optimize", json=body)
+    assert r.status_code == 422
+    if r.json()["code"] == "HTTP_ERROR":
+        assert "OpenQASM 2" in r.json()["message"]
 
 def test_qiskit_timeout(contexto, monkeypatch):
     client, _ = contexto

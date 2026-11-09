@@ -67,6 +67,8 @@ async def erro_http(request, exc):
     mensagens = {400:'Requisição ou formulário inválido.',404:'Rota não encontrada.',405:'Método não permitido.',
                  413:'Arquivo maior que 256 KiB.',415:'Use arquivo .txt, .md, .py ou .qasm em UTF-8.',
                  422:'Arquivo vazio, binário ou fora da codificação UTF-8.'}
+    if request.url.path == '/qiskit/optimize':
+        mensagens[422] = 'OpenQASM 2 inválido ou circuito acima dos limites permitidos.'
     return erro(request,exc.status_code,'HTTP_ERROR',mensagens.get(exc.status_code,'Falha na requisição.'))
 
 @app.exception_handler(FalhaServico)
