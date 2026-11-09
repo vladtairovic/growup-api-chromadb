@@ -1,0 +1,12 @@
+# Origens da integração — 08/11/2026
+
+- RAG/LLM: [GrowUp-Pessoa4](https://github.com/Cauarichard018/GrowUp-Pessoa4/tree/26ec508ac06f907770cb09f188692205a7804b0f), commit `26ec508ac06f907770cb09f188692205a7804b0f`.
+  O repositório contém pipeline, montagem de contexto, prompt e cliente Gemini, mas importa um módulo de busca que não acompanha o repositório. Nesta aplicação a busca é fornecida por `rag/busca_chromadb.py`, conectada ao ChromaDB remoto.
+  `rag/contexto_gemini.py` preserva a montagem de contexto; `rag/prompts_gemini.py` preserva o prompt. `rag/cliente_gemini.py` adapta imports, remove carregamento implícito de .env (Compose injeta as variáveis) e acrescenta timeout/retry limitado. `rag/pipeline_gemini.py` preserva o fluxo recuperar/contextualizar/gerar, converte as fontes para o contrato existente e propaga erros ao HTTP em vez de transformá-los em uma resposta aparentemente bem-sucedida.
+- Qiskit: [GrowUP---Qiskit](https://github.com/Guilherme-Ximenes/GrowUP---Qiskit/tree/b148e235abca4c02cfc2c01468c7c6a35f642134), commit `b148e235abca4c02cfc2c01468c7c6a35f642134`.
+  `quantum/qiskit_service.py` foi incorporado sem mudanças na lógica científica (apenas espaços finais foram removidos). Os testes originais foram incorporados com ajuste apenas do caminho de importação. `quantum/api.py` e `quantum/worker.py` acrescentam contrato HTTP, concorrência limitada e processo encerrável por timeout. O serviço usa transpiler e Operator reais do Qiskit 2.6.0; não precisa de Aer nem credenciais IBM.
+- ChromaDB: código da pasta da workspace `GROWUP - ChromaDB` conferido com a implementação remota. Mesma coleção `qiskit_documentacao_multilingue`, modelo multilíngue MiniLM-L12-v2, embeddings normalizados e metadados documentais. O snapshot textual é idêntico byte a byte ao da pasta atual: SHA-256 `E72D0B83DC245E9E1FDF099852518F6A38B6DF2A16300DE9FE8DCD2A16B2A191`. Nenhum arquivo do banco local foi aberto ou copiado.
+
+A integração não requer um terceiro serviço Docker: Qiskit, SDK Gemini, FastAPI e cliente ChromaDB coexistem na imagem Python 3.12. O servidor ChromaDB permanece separado e usa somente um volume vetorial.
+
+O Gemini é um provedor externo real. Sem credencial, o serviço permanece utilizável para recuperação documental e Qiskit, mas não gera respostas de IA. Por escolha explícita do usuário, o teste contra a API real do Gemini não foi executado nesta entrega.

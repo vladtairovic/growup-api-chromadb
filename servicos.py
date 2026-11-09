@@ -72,7 +72,10 @@ class ServicosIntegrados:
         )
 
     async def consultar(self, texto):
-        raise LLMNaoConfigurada()
+        if not os.getenv("GEMINI_API_KEY", "").strip():
+            raise LLMNaoConfigurada()
+        from rag.pipeline_gemini import responder
+        return await self._executar(responder, texto)
 
     async def adicionar_documento(self, filename, content):
         def adicionar():

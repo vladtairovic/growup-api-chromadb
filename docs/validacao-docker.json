@@ -1,0 +1,75 @@
+{
+  "inicio_utc": "2026-11-09T02:06:24.600175+00:00",
+  "etapas": [
+    {
+      "etapa": "containers_iniciados_base_vazia",
+      "colecoes": 1
+    },
+    {
+      "etapa": "snapshot_indexado",
+      "documentos": 3,
+      "chunks": 154,
+      "dimensao": 384,
+      "saida": "ibm_intro_transpilacao | 26 chunks | 0 obsoletos removidos\nibm_etapas_transpilacao | 78 chunks | 0 obsoletos removidos\nibm_niveis_otimizacao | 50 chunks | 0 obsoletos removidos\nDocumentos processados: 3\nTotal de chunks na coleção: 154\nDocumentos fora deste lote foram preservados."
+    },
+    {
+      "etapa": "reindexacao_idempotente",
+      "chunks": 154
+    },
+    {
+      "etapa": "busca_semantica_real",
+      "segundos": 0.032,
+      "fontes": [
+        "https://quantum.cloud.ibm.com/docs/en/guides/transpile"
+      ]
+    },
+    {
+      "etapa": "upload_listagem_busca_e_reenvio",
+      "document_id": "upload_0bfbdc193876d599f60f7e372c0ddfd80198e95f6959783dfbdb83738ec6edbd"
+    },
+    {
+      "etapa": "qiskit_real",
+      "equivalente": true,
+      "operacoes_antes": 2,
+      "operacoes_depois": 0
+    },
+    {
+      "etapa": "gemini_real",
+      "resultado": "nao_executado_sem_credencial_por_escolha_do_usuario"
+    },
+    {
+      "etapa": "validacoes_http_e_llm_ausente",
+      "codigo_llm": "LLM_NOT_CONFIGURED"
+    },
+    {
+      "etapa": "avaliacao_gravada",
+      "id": "ba5efa33-bf64-40b5-8940-c76bf5a51cb6"
+    },
+    {
+      "etapa": "indisponibilidade_e_recuperacao",
+      "http_busca": 503
+    },
+    {
+      "etapa": "persistencia_apos_recriar_containers",
+      "chunks": 155,
+      "documentos": 4,
+      "colecoes": 1,
+      "modelo_carregado_sem_download": true,
+      "avaliacao_preservada": true
+    },
+    {
+      "etapa": "dependencias_no_container",
+      "resultado": "No broken requirements found."
+    },
+    {
+      "etapa": "teste_pytest_live",
+      "resultado": ".                                                                        [100%]\n=============================== warnings summary ===============================\n../usr/local/lib/python3.12/site-packages/starlette/testclient.py:37\n  /usr/local/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.\n    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n1 passed, 84 deselected, 1 warning in 1.82s"
+    },
+    {
+      "etapa": "validacao_concluida",
+      "resultado": "aprovado"
+    }
+  ],
+  "resultado": "aprovado",
+  "fim_utc": "2026-11-09T02:08:31.615673+00:00"
+}

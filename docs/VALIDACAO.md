@@ -1,29 +1,35 @@
-# Validação da integração — 26/10/2026
+# Validação — 08/11/2026
 
-## Executado
+## Resultado desta entrega
 
-- Inspeção de código, dependências, caminhos, coleções, embeddings e contratos nas três pastas, sem ler bancos, caches, modelos baixados ou ambientes virtuais de origem.
-- Testes em ambiente temporário novo, usando o Python disponível no host: **3.15.0rc3**. O Dockerfile utiliza **Python 3.12**.
-- `python -B -m pytest -q -p no:cacheprovider --tb=short`: **52 aprovados, 1 ignorado**. O teste ignorado depende de API, modelo e ChromaDB reais em execução.
-- `python -m pip check` no ambiente de teste: **No broken requirements found**.
-- OpenAPI regenerado e validado pelos testes; rotas e modelos de entrada/saída preservados.
-- Resolução com pip `--dry-run --only-binary=:all:` para **Linux x86_64/Python 3.12**, incluindo **torch 2.14.1+cpu** e todos os requisitos de execução: concluída sem conflito. Isso valida a resolução, não equivale a executar o build ou o modelo.
-- Imagem oficial `chromadb/chroma:1.5.9` consultada no registro; configuração oficial usa `/data` para persistência.
-- YAML do Compose analisado nos testes: dois serviços, rede interna e único volume de banco. O estágio Docker de teste não acrescenta um serviço permanente.
+Executado localmente com Docker Desktop, engine 29.9.2, containers Linux/Python 3.12:
 
-Foram mantidos os testes originais de contrato da API e os seis testes de artefatos do RAG. O simulador original ficou restrito aos testes. O caso de upload acima do limite recebeu um identificador curto porque o pytest no Windows falhou ao formar o nome temporário a partir de 262.145 bytes usados como parâmetro. O conteúdo e a expectativa desse teste foram preservados.
+- Imagem de testes: **84 testes aprovados**, 1 teste live inicialmente ignorado por depender dos serviços ativos.
+- Depois, teste live contra API e ChromaDB reais: **1 aprovado**, 84 desmarcados. Total: **85 testes aprovados nas duas fases**, sem falhas.
+- Build da imagem completa com FastAPI, ChromaDB client, embeddings CPU, Google Gen AI SDK e Qiskit concluído.
+- `pip check` nas imagens de teste e execução: **No broken requirements found**.
+- OpenAPI exportado e validado; contratos existentes preservados, rota `POST /qiskit/optimize` acrescentada.
+- Script `scripts/validar_docker.py`: **aprovado**, usando projeto isolado `growup-validacao`, API na porta 18080.
+- Coleção única: 3 documentos de origem, 154 chunks e embeddings reais de 384 dimensões.
+- Reindexação idempotente, busca semântica, upload, repetição sem duplicação e listagem aprovados.
+- Qiskit real via HTTP: circuito H/H reduziu de 2 operações para 0; equivalência confirmada.
+- ChromaDB parado: busca/listagem retornaram 503; após religar, serviço recuperado.
+- Containers removidos e recriados sem excluir volumes: coleção/IDs, documentos e avaliação preservados; modelo carregou do cache com download desativado.
+- `/query` sem chave: 503 `LLM_NOT_CONFIGURED`.
+- Fluxo RAG/Gemini, ausência de contexto, falha do provedor, timeout configurado e fechamento do cliente cobertos por testes com transporte controlado; esses testes não são respostas reais de IA.
+- Dados locais antigos, ambientes virtuais e modelos baixados não foram incorporados ao repositório.
 
-Os novos testes cobrem upload e busca pelo código integrado, metadados/fontes, reunião e ordenação de seções, reenvio idempotente, paginação do catálogo, remoção apenas de chunks obsoletos do documento atualizado, indisponibilidade, resposta inválida, timeout, coleção incompatível e erro explícito de LLM ausente. O SDK real também é exercitado com respostas HTTP controladas; isso não prova conectividade com servidor real.
+Evidência detalhada desta execução: [validacao-docker.json](validacao-docker.json).
+A CI em [.github/workflows/validar.yml](../.github/workflows/validar.yml) repete os builds e os testes com containers reais.
 
-Há avisos de depreciação das bibliotecas no Python 3.15 e de configuração legada de embeddings no teste HTTP controlado; nenhum causou falha nos testes.
+## Limitações confirmadas
 
-## Não executado neste computador
+**Não houve chamada real ao Gemini**, por escolha explícita do usuário de continuar sem credencial. Para validar essa última dependência, configure `GEMINI_API_KEY` em `.env`, confirme acesso ao `GEMINI_MODEL`, recrie a API e execute a consulta descrita no README. Ainda precisam ser avaliadas a qualidade das respostas, pertinência e fidelidade das citações.
 
-- `docker --version` e `docker compose version`: comando `docker`. Portanto, build, subida dos dois containers, download/carregamento do modelo, busca semântica real e persistência após reiniciar os containers permanecem pendentes.
-- `gh auth status`: comando `gh`. Nenhuma autenticação foi contornada; nenhum repositório foi criado, sobrescrito ou enviado. A existência de `growup-api-chromadb` na conta ainda não pôde ser consultada.
-- Dados locais não foram abertos, migrados ou testados quanto à compatibilidade binária.
-- Nenhuma LLM foi chamada. `/query` retorna `503 LLM_NOT_CONFIGURED`.
+Qiskit não executa hardware IBM nem Aer. O endpoint transpila e avalia equivalência unitária dentro dos limites do serviço original. Casos não verificáveis são identificados no retorno; não são declarados equivalentes.
 
-## Próxima validação em máquina com Docker
+Foram observados três avisos de depreciação na suíte isolada (Starlette/AnyIO e configuração legada do SDK ChromaDB no teste controlado). Não houve falha de teste ou conflito de dependências. Estes resultados comprovam os cenários exercitados, não uma garantia de ausência de qualquer defeito.
 
-Siga o README: `docker compose config --quiet`, build/subida, indexação explícita do snapshot e teste marcado `live`. Depois reinicie com `docker compose down` / `up -d` sem remover volumes e confirme que os documentos continuam pesquisáveis. Registre tempo de inicialização, primeira busca, qualidade dos resultados e eventual limiar de relevância antes de declarar o fluxo de produção validado.
+## Histórico
+
+A primeira preparação ocorreu em 26/10/2026. A CI anterior já validou o projeto sem Gemini/Qiskit em 27/10/2026. O presente relatório substitui as antigas pendências locais de Docker e GitHub, agora disponíveis e autenticados. As fontes/commits desta nova integração constam em [INTEGRACOES.md](INTEGRACOES.md).

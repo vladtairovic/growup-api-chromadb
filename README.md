@@ -1,16 +1,17 @@
-# GrowUp — API integrada ao RAG e ChromaDB
+# GrowUp — API, ChromaDB, RAG com Gemini e Qiskit
 
 FastAPI e o código Python reutilizável do RAG executam no container `api`. O servidor ChromaDB executa no container `chroma`, acessível somente pela rede interna do Compose. O volume `chroma_data` é a única base vetorial desta aplicação. Não há `PersistentClient`, caminho do computador de origem, cópia de banco local ou migração automática.
 
-`POST /search`, `POST /documents` e `GET /documents` estão integrados. **`POST /query` retorna HTTP 503, código `LLM_NOT_CONFIGURED`: nenhuma LLM foi fornecida ou conectada.** Não há execução nem alteração da lógica de Qiskit.
+Busca, upload e listagem compartilham uma única coleção remota. `POST /query` usa o RAG da Pessoa4 com Gemini real quando `GEMINI_API_KEY` está configurada; sem chave retorna `503 LLM_NOT_CONFIGURED`. `POST /qiskit/optimize` executa o serviço Qiskit fornecido pela equipe, sem depender da LLM. Não há resposta simulada em produção.
 
 ## Arquitetura e decisões
 
 ```mermaid
 flowchart LR
-    U[Cliente] --> A[API FastAPI + RAG Python]
+    U[Cliente] --> A[API FastAPI + RAG Python + Qiskit]
     A -->|HTTP na rede interna| C[Servidor ChromaDB]
     C --> V[(Volume chroma_data)]
+    A -->|HTTPS com chave| G[Gemini]
 ```
 
 - Coleção única: `qiskit_documentacao_multilingue`.
@@ -19,8 +20,8 @@ flowchart LR
 - Cliente e servidor ChromaDB fixados em `1.5.9`. A API usa `chromadb-client`, que não inclui o motor local do banco.
 - Busca reaproveitada de `Rag/busca_chromadb.py`: consulta chunks candidatos, agrupa por documento/seção e reconstitui a ordem pelo metadado `indice`.
 - Chunking e atualização por documento reaproveitados do RAG. Chunks têm até 110 tokens, incluindo o título. A geração dos vetores agora é explícita tanto na busca quanto na indexação.
-- O protótipo `chroma_DB` usava `banco_chroma`, coleção `documentacao_qiskit`, embeddings padrão e nenhum metadado de origem. Ele não foi incorporado como segunda base e não é compatível diretamente com a recuperação por seções.
-- As diferenças de versões entre os requisitos originais foram conciliadas em um conjunto mínimo. Não foi necessário um terceiro container para o RAG. A resolução para Linux x86_64/Python 3.12 com PyTorch CPU foi verificada; o build Docker ainda precisa ser executado em uma máquina com Docker.
+- A pasta atual `GROWUP - ChromaDB` usa a mesma coleção, modelo e formato documental do RAG integrado. O código de recuperação é compatível; seu banco local continua preservado e não é montado nem migrado automaticamente.
+- As diferenças de versões entre os requisitos originais foram conciliadas em um conjunto mínimo. Não foi necessário um terceiro container para o RAG. A resolução para Linux x86_64/Python 3.12 com PyTorch CPU foi verificada; a validação executa o build e os dois serviços reais (ver relatório de validação).
 
 As três pastas de origem foram preservadas. Esta pasta pode ser copiada sozinha para outro diretório ou computador. O snapshot textual em `documentos/base_documental.json` contém as três fontes públicas já fornecidas na pasta RAG; ele não contém embeddings nem arquivos do banco.
 
@@ -38,7 +39,7 @@ docker compose up --build -d
 docker compose logs -f api
 ```
 
-O primeiro build baixa dependências. Na primeira inicialização, a API baixa o modelo público e aquece os embeddings antes de aceitar chamadas. Isso pode levar vários minutos. O modelo fica no volume `model_cache`, sem entrar no Git ou no contexto de build. Não há chave de IA necessária. `Ctrl+C` encerra apenas o acompanhamento dos logs.
+O primeiro build baixa dependências. Na primeira inicialização, a API baixa o modelo público e aquece os embeddings antes de aceitar chamadas. Isso pode levar vários minutos. O modelo fica no volume `model_cache`, sem entrar no Git ou no contexto de build. Busca, uploads e Qiskit não exigem chave. A geração Gemini exige chave válida e acesso ao modelo configurado. `Ctrl+C` encerra apenas o acompanhamento dos logs.
 
 Verifique o estado e abra o Swagger:
 
@@ -81,7 +82,8 @@ No Linux/macOS, use `curl` no lugar de `curl.exe`, ou faça as mesmas operaçõe
 | `POST /search` | Recebe `query`; devolve `chunks`, `citations`, `status`, `request_id`, `mode`. |
 | `POST /documents` | Recebe `file` multipart; indexa e retorna 201 com `id`, `filename`, `status=sucesso`, `mode`. |
 | `GET /documents` | Consulta o catálogo derivado dos metadados na mesma coleção. |
-| `POST /query` | Valida `input` e retorna 503 com o contrato de erro existente e código `LLM_NOT_CONFIGURED`. |
+| `POST /query` | Recebe `input`, recupera contexto e chama Gemini; retorna `response`, `sources`, `status`, `request_id`, `mode`. Sem chave: 503 `LLM_NOT_CONFIGURED`. |
+| `POST /qiskit/optimize` | Recebe `qasm` (OpenQASM 2) e `optimization_level` (0–3); retorna circuito otimizado, métricas e equivalência. |
 | `POST /evaluate` | Mantém cálculo de notas humanas e registro em JSONL no volume `api_data`. |
 
 O arquivo `contratos.py` foi preservado. O OpenAPI atualizado está em `openapi.json`. Cada fonte continua contendo apenas `document_id`, `chunk_id`, `source`, `content`; os nomes internos do RAG são convertidos pelo adaptador em `servicos.py`.
@@ -163,11 +165,58 @@ Resultados da preparação e verificações pendentes: [docs/VALIDACAO.md](docs/
 
 ## Limitações e pendências da equipe
 
-- Falta definir provedor, modelo, credenciais quando aplicáveis e contrato da chamada de LLM. Os prompts estão preservados como material futuro, mas não são enviados a modelo algum. O contrato português em `docs/PESSOA_4_DOCUMENTACAO.md` é uma proposta original, não substitui os contratos HTTP atuais.
+- Gemini está implementado com o SDK oficial. O teste real da LLM não foi executado por escolha do usuário, sem credencial. A equipe deve fornecer chave, verificar acesso/cota do modelo e avaliar qualidade e citações. O documento legado da Pessoa4 não substitui o contrato HTTP.
 - A recuperação semântica sempre pode encontrar vizinhos próximos em uma coleção não vazia. `status=ok` em `/search` significa que há resultados, não que eles respondem à pergunta. O limiar de rejeição ainda precisa ser calibrado; distância não é confiança percentual.
-- A busca reconstitui seções completas. Uma futura integração com LLM precisa controlar orçamento de contexto e avaliar fontes e pertinência.
+- O contexto Gemini é limitado a 12.000 caracteres por padrão. Fontes retornadas são as seções selecionadas; a última pode ser truncada no prompt. Citações e pertinência não são verificadas automaticamente.
 - Embeddings e acesso síncrono ao banco executam fora do event loop. Um timeout HTTP não interrompe à força uma thread nem desfaz gravações já realizadas. Uma falha parcial de indexação pode exigir reenvio do mesmo arquivo/lote. Não há transação abrangendo todos os documentos.
 - O transporte do SDK 1.5.9 é configurado por sua sessão interna para ter timeout após a conexão. O teste do SDK cobre esse ponto; atualizações de versão exigem revalidação. O handshake inicial do SDK não oferece timeout público; não trate o prazo de inicialização como limite absoluto de uma conexão travada.
 - Use um worker da API nesta versão. Evite reindexação de lotes simultânea a uploads e consultas; listagem e recuperação não fornecem um snapshot transacional.
 - Dependências principais estão fixadas; dependências transitivas e revisão dos arquivos do modelo ainda não têm lock completo. Reproduções futuras devem revalidar os testes.
-- Não há autenticação da API, validação de equivalência de circuitos, execução Aer ou avaliação automática por IA.
+- Não há autenticação da API, execução Aer, hardware IBM ou agente autônomo executando código gerado por LLM. A equivalência unitária Qiskit tem limite de 10 qubits; circuitos não verificáveis retornam `equivalente=null`, sem afirmar sucesso científico.
+
+## Gemini: ativação e teste real
+
+Copie `.env.example` para `.env` (PowerShell: `Copy-Item .env.example .env`, somente se ainda não existir). Configure localmente:
+
+```dotenv
+GEMINI_API_KEY=sua_chave
+GEMINI_MODEL=gemini-2.5-flash
+GEMINI_TIMEOUT_SECONDS=40
+GROWUP_MAX_CONTEXT_CHARS=12000
+QISKIT_TIMEOUT_SECONDS=30
+```
+
+Não publique a chave. Recrie a API com `docker compose up -d --force-recreate api`. O modelo padrão preserva a escolha do repositório Pessoa4; disponibilidade e permissão precisam ser confirmadas na conta da equipe. Não há fallback silencioso para outro modelo. Pergunta e trechos recuperados são enviados ao serviço Gemini externo.
+
+Depois de indexar os documentos, use Swagger ou:
+
+```powershell
+$corpo = @{ input = 'Explique os níveis de otimização do Qiskit e cite as fontes.' } | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri http://localhost:8000/query -ContentType 'application/json' -Body ([Text.Encoding]::UTF8.GetBytes($corpo))
+```
+
+Sem contexto, retorna `insufficient_context` sem chamar Gemini. Falha do provedor retorna erro HTTP, nunca texto falso de sucesso. Timeout HTTP global retorna 504; erro do SDK/provedor retorna 503. O SDK tem timeout próprio e apenas uma tentativa. A chamada síncrona pode terminar depois do timeout HTTP global.
+
+## Qiskit real
+
+```powershell
+$corpo = @{ qasm = 'OPENQASM 2.0; include "qelib1.inc"; qreg q[1]; h q[0]; h q[0];'; optimization_level = 3 } | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri http://localhost:8000/qiskit/optimize -ContentType 'application/json' -Body $corpo
+```
+
+As duas portas H se cancelam; a resposta inclui operações antes/depois, profundidade, QASM otimizado e equivalência. O módulo científico original foi preservado; o adaptador HTTP valida a entrada e roda cada análise em subprocesso, com uma execução simultânea e prazo de 30 segundos (inclui espera na fila). Ao exceder o prazo, encerra o processo. Limites do módulo: 10.000 caracteres, 32 qubits/bits clássicos e 500 operações; equivalência até 10 qubits. Entradas inválidas retornam 422. Não executamos Python arbitrário recebido por upload ou produzido pelo Gemini.
+
+`/query` explica documentação; `/qiskit/optimize` processa o circuito explicitamente enviado. Não existe encadeamento automático de uma resposta da LLM para execução científica.
+
+## Validação completa em containers
+
+```powershell
+docker build --target test -t growup-api-tests .
+docker run --rm growup-api-tests
+docker compose -p growup-validacao build api
+python scripts/validar_docker.py
+```
+
+O script precisa de Python no host, usa porta 18080 e volumes isolados `growup-validacao_*`. Exige base de teste inicialmente vazia e não remove volumes. Para uma nova campanha, altere explicitamente o nome do projeto de teste no script ou preserve/arquive o volume anterior antes de removê-lo. Não execute testes destrutivos sobre o ambiente de uso. O relatório fica em `artifacts/validacao-docker.json` (ignorado no Git). A CI executa a mesma validação. Gemini é deliberadamente desativado nessa campanha para testar ausência de chave sem consumir cota.
+
+Origens e adaptações: [docs/INTEGRACOES.md](docs/INTEGRACOES.md).

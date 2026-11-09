@@ -23,7 +23,7 @@ ENV = {
     **os.environ, "API_PORT": "18080", "GROWUP_PERMITIR_DOWNLOAD": "1",
     "CHROMA_COLLECTION": "qiskit_documentacao_multilingue",
     "EMBEDDING_MODEL": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-    "RAG_MAX_DISTANCE": "", "API_TIMEOUT_SECONDS": "120",
+    "RAG_MAX_DISTANCE": "", "API_TIMEOUT_SECONDS": "120", "GEMINI_API_KEY": "",
 }
 COMPOSE = ["docker", "compose", "-p", PROJECT]
 REPORT = {"inicio_utc": datetime.now(timezone.utc).isoformat(), "etapas": []}
@@ -167,6 +167,15 @@ def main():
     recuperado, _ = conferir("POST", "/search", 200, {"query": texto.decode("utf-8")})
     assert any(c["document_id"] == doc_id and c["source"] == nome for c in recuperado["chunks"])
     registrar("upload_listagem_busca_e_reenvio", document_id=doc_id)
+
+    circuito = 'OPENQASM 2.0; include "qelib1.inc"; qreg q[1]; h q[0]; h q[0];'
+    otimizado, _ = conferir("POST", "/qiskit/optimize", 200, {"qasm": circuito})
+    assert otimizado["equivalente"] is True
+    assert otimizado["original"]["total_operacoes"] == 2
+    assert otimizado["proposta"]["total_operacoes"] == 0
+    conferir("POST", "/qiskit/optimize", 422, {"qasm": "invalido"})
+    registrar("qiskit_real", equivalente=True, operacoes_antes=2, operacoes_depois=0)
+    registrar("gemini_real", resultado="nao_executado_sem_credencial_por_escolha_do_usuario")
 
     falta_llm, _ = conferir("POST", "/query", 503, {"input": "Otimize o circuito."})
     assert falta_llm["code"] == "LLM_NOT_CONFIGURED"

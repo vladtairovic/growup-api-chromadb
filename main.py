@@ -32,9 +32,9 @@ ERROS = {n: {'model': Erro, 'description': descricao} for n, descricao in {
     413:'Arquivo acima do limite', 415:'Tipo de conteúdo não aceito',
     422:'Entrada inválida', 500:'Falha interna', 502:'Resposta externa inválida',
     503:'Serviço externo indisponível', 504:'Tempo limite excedido'}.items()}
-app = FastAPI(title='GrowUp - API integrada', version='0.2.0', responses=ERROS,
+app = FastAPI(title='GrowUp - API integrada', version='0.3.0', responses=ERROS,
     lifespan=lifespan,
-    description='Busca e documentos integrados ao ChromaDB. /query retorna 503 LLM_NOT_CONFIGURED: geração por LLM ainda não conectada.')
+    description='API com ChromaDB remoto, RAG Gemini e otimização Qiskit. Gemini exige GEMINI_API_KEY.')
 app.openapi_version = '3.1.0'
 
 def erro(request, status, code, message, fields=None):
@@ -101,7 +101,7 @@ async def health():
 
 @app.post('/query', response_model=RespostaConsulta)
 async def query(entrada: Consulta, request: Request):
-    """Contrato preservado; retorna 503 LLM_NOT_CONFIGURED até a equipe conectar a LLM."""
+    """Recupera contexto no ChromaDB e consulta Gemini; sem chave retorna 503 LLM_NOT_CONFIGURED."""
     resultado = ResultadoConsulta.model_validate(await chamar(servicos.consultar(entrada.input)))
     return RespostaConsulta(**resultado.model_dump(), request_id=request.state.request_id, mode=servicos.mode)
 
@@ -157,3 +157,6 @@ async def avaliar(entrada: Avaliacao):
     with ARQUIVO_AVALIACOES.open('a',encoding='utf-8') as arquivo:
         arquivo.write(resultado.model_dump_json()+'\n')
     return resultado
+
+from quantum.api import router as quantum_router
+app.include_router(quantum_router)

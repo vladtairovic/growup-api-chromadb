@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "GrowUp - API integrada",
-    "description": "Busca e documentos integrados ao ChromaDB. /query retorna 503 LLM_NOT_CONFIGURED: geração por LLM ainda não conectada.",
-    "version": "0.2.0"
+    "description": "API com ChromaDB remoto, RAG Gemini e otimização Qiskit. Gemini exige GEMINI_API_KEY.",
+    "version": "0.3.0"
   },
   "paths": {
     "/health": {
@@ -128,7 +128,7 @@
     "/query": {
       "post": {
         "summary": "Query",
-        "description": "Contrato preservado; retorna 503 LLM_NOT_CONFIGURED até a equipe conectar a LLM.",
+        "description": "Recupera contexto no ChromaDB e consulta Gemini; sem chave retorna 503 LLM_NOT_CONFIGURED.",
         "operationId": "query_query_post",
         "requestBody": {
           "content": {
@@ -757,6 +757,135 @@
           }
         }
       }
+    },
+    "/qiskit/optimize": {
+      "post": {
+        "summary": "Otimizar",
+        "description": "Transpila OpenQASM 2 e verifica equivalência quando possível; sem LLM.",
+        "operationId": "otimizar_qiskit_optimize_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Circuito"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultadoQiskit"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Requisição malformada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rota inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Método incorreto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Arquivo acima do limite",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Tipo de conteúdo não aceito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Falha interna",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Resposta externa inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Serviço externo indisponível",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Tempo limite excedido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -841,6 +970,29 @@
           "query"
         ],
         "title": "Busca"
+      },
+      "Circuito": {
+        "properties": {
+          "qasm": {
+            "type": "string",
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Qasm"
+          },
+          "optimization_level": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 0.0,
+            "title": "Optimization Level",
+            "default": 3
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "qasm"
+        ],
+        "title": "Circuito"
       },
       "Consulta": {
         "properties": {
@@ -1215,6 +1367,95 @@
           "mode"
         ],
         "title": "RespostaDocumento"
+      },
+      "ResultadoQiskit": {
+        "properties": {
+          "original": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Original"
+          },
+          "proposta": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Proposta"
+          },
+          "equivalente": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Equivalente"
+          },
+          "status_verificacao": {
+            "type": "string",
+            "title": "Status Verificacao"
+          },
+          "motivo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Motivo"
+          },
+          "diferenca_operacoes": {
+            "type": "integer",
+            "title": "Diferenca Operacoes"
+          },
+          "diferenca_profundidade": {
+            "type": "integer",
+            "title": "Diferenca Profundidade"
+          },
+          "reduziu_operacoes": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reduziu Operacoes"
+          },
+          "reduziu_profundidade": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reduziu Profundidade"
+          },
+          "circuito_otimizado_qasm": {
+            "type": "string",
+            "title": "Circuito Otimizado Qasm"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "original",
+          "proposta",
+          "equivalente",
+          "status_verificacao",
+          "motivo",
+          "diferenca_operacoes",
+          "diferenca_profundidade",
+          "reduziu_operacoes",
+          "reduziu_profundidade",
+          "circuito_otimizado_qasm"
+        ],
+        "title": "ResultadoQiskit"
       },
       "Saude": {
         "properties": {

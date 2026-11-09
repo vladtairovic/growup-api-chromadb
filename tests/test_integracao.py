@@ -69,6 +69,7 @@ def contexto(monkeypatch, tmp_path):
     monkeypatch.setattr(busca_chromadb, "criar_embeddings", vetores)
     monkeypatch.setattr(indexar_documentos, "criar_embeddings", vetores)
     monkeypatch.delenv("RAG_MAX_DISTANCE", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     service = servicos.ServicosIntegrados()
     monkeypatch.setattr(service, "inicializar", lambda: None)
     monkeypatch.setattr(main, "servicos", service)

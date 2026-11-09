@@ -25,6 +25,7 @@ RUN useradd --create-home --uid 10001 growup \
     && chown -R growup:growup /app /home/growup
 COPY --chown=growup:growup main.py servicos.py contratos.py exportar_openapi.py openapi.json ./
 COPY --chown=growup:growup rag ./rag
+COPY --chown=growup:growup quantum ./quantum
 COPY --chown=growup:growup documentos ./documentos
 COPY --chown=growup:growup exemplos ./exemplos
 ENV HF_HOME=/home/growup/.cache/huggingface \
