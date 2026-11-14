@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ARTIFACTS = ROOT / "artifacts"
 PROJECT = "growup-validacao"
 ENV = {
-    **os.environ, "API_PORT": "18080", "FRONTEND_PORT": "13000", "GROWUP_PERMITIR_DOWNLOAD": "1",
+    **os.environ, "API_PORT": "18080", "FRONTEND_PORT": "13000", "GROWUP_PERMITIR_DOWNLOAD": "1", "KNOWLEDGE_AUTO_SYNC": "0", 
     "CHROMA_COLLECTION": "qiskit_documentacao_multilingue",
     "EMBEDDING_MODEL": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
     "RAG_MAX_DISTANCE": "", "API_TIMEOUT_SECONDS": "120", "GEMINI_API_KEY": "",
