@@ -7,9 +7,12 @@ class Modelo(BaseModel):
     model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
 
 class Consulta(Modelo):
+    web_search: bool | None = Field(default=None, strict=True, description='Busca Google sob demanda; null usa a configuração do servidor.')
+    top_k: int = Field(default=3, ge=1, le=10, strict=True)
     input: Annotated[str, Field(min_length=1, max_length=30000)]
 
 class Busca(Modelo):
+    top_k: int = Field(default=3, ge=1, le=10, strict=True)
     query: Annotated[str, Field(min_length=1, max_length=2000)]
 
 class Fonte(Modelo):
@@ -18,9 +21,18 @@ class Fonte(Modelo):
     source: str
     content: str
 
+class FonteContexto(Fonte):
+    model_config = ConfigDict(from_attributes=True)
+    origin: Literal['local', 'web'] = 'local'
+    title: str | None = None
+    retrieved_at: str | None = None
+
 class ResultadoConsulta(Modelo):
+    web_status: Literal['disabled', 'used', 'not_used'] = 'disabled'
+    warnings: list[str] = Field(default_factory=list)
+    search_suggestions_html: str | None = None
     response: str
-    sources: list[Fonte]
+    sources: list[FonteContexto]
     status: Literal['ok', 'insufficient_context']
 
 class RespostaConsulta(ResultadoConsulta):

@@ -1,0 +1,107 @@
+[
+  {
+    "document_id": "ibm_circuit_library",
+    "url": "https://quantum.cloud.ibm.com/docs/en/guides/circuit-library",
+    "versao": "guia online; conferir requisitos na página"
+  },
+  {
+    "document_id": "ibm_construct_circuits",
+    "url": "https://quantum.cloud.ibm.com/docs/en/guides/construct-circuits",
+    "versao": "guia online; conferir requisitos na página"
+  },
+  {
+    "document_id": "ibm_visualize_circuits",
+    "url": "https://quantum.cloud.ibm.com/docs/en/guides/visualize-circuits",
+    "versao": "guia online; conferir requisitos na página"
+  },
+  {
+    "document_id": "ibm_bit_ordering",
+    "url": "https://quantum.cloud.ibm.com/docs/en/guides/bit-ordering",
+    "versao": "guia online; conferir requisitos na página"
+  },
+  {
+    "document_id": "ibm_measure_qubits",
+    "url": "https://quantum.cloud.ibm.com/docs/en/guides/measure-qubits",
+    "versao": "guia online; conferir requisitos na página"
+  },
+  {
+    "document_id": "ibm_simulate_with_qiskit_sdk_primitives",
+    "url": "https://quantum.cloud.ibm.com/docs/en/guides/simulate-with-qiskit-sdk-primitives",
+    "versao": "guia online; conferir requisitos na página"
+  },
+  {
+    "document_id": "ibm_intro_transpilacao",
+    "url": "https://quantum.cloud.ibm.com/docs/en/guides/transpile",
+    "versao": "guia online; conferir requisitos na página"
+  },
+  {
+    "document_id": "ibm_etapas_transpilacao",
+    "url": "https://quantum.cloud.ibm.com/docs/en/guides/transpiler-stages",
+    "versao": "guia online; conferir requisitos na página"
+  },
+  {
+    "document_id": "ibm_niveis_otimizacao",
+    "url": "https://quantum.cloud.ibm.com/docs/en/guides/set-optimization",
+    "versao": "guia online; conferir requisitos na página"
+  },
+  {
+    "document_id": "ibm_transpilation_defaults",
+    "url": "https://quantum.cloud.ibm.com/docs/en/guides/defaults-and-configuration-options",
+    "versao": "guia online; conferir requisitos na página"
+  },
+  {
+    "document_id": "ibm_classical_feedforward_and_control_flow",
+    "url": "https://quantum.cloud.ibm.com/docs/en/guides/classical-feedforward-and-control-flow",
+    "versao": "guia online; conferir requisitos na página"
+  },
+  {
+    "document_id": "ibm_api_circuit",
+    "url": "https://quantum.cloud.ibm.com/docs/en/api/qiskit/2.6/circuit",
+    "versao": "Referência solicitada Qiskit 2.6; conferir versão efetiva na página após redirecionamento IBM."
+  },
+  {
+    "document_id": "ibm_api_qiskit_circuit_QuantumCircuit",
+    "url": "https://quantum.cloud.ibm.com/docs/en/api/qiskit/2.6/qiskit.circuit.QuantumCircuit",
+    "versao": "Referência solicitada Qiskit 2.6; conferir versão efetiva na página após redirecionamento IBM."
+  },
+  {
+    "document_id": "ibm_api_qiskit_circuit_Parameter",
+    "url": "https://quantum.cloud.ibm.com/docs/en/api/qiskit/2.6/qiskit.circuit.Parameter",
+    "versao": "Referência solicitada Qiskit 2.6; conferir versão efetiva na página após redirecionamento IBM."
+  },
+  {
+    "document_id": "ibm_api_circuit_library",
+    "url": "https://quantum.cloud.ibm.com/docs/en/api/qiskit/2.6/circuit_library",
+    "versao": "Referência solicitada Qiskit 2.6; conferir versão efetiva na página após redirecionamento IBM."
+  },
+  {
+    "document_id": "ibm_api_quantum_info",
+    "url": "https://quantum.cloud.ibm.com/docs/en/api/qiskit/2.6/quantum_info",
+    "versao": "Referência solicitada Qiskit 2.6; conferir versão efetiva na página após redirecionamento IBM."
+  },
+  {
+    "document_id": "ibm_api_qiskit_quantum_info_Statevector",
+    "url": "https://quantum.cloud.ibm.com/docs/en/api/qiskit/2.6/qiskit.quantum_info.Statevector",
+    "versao": "Referência solicitada Qiskit 2.6; conferir versão efetiva na página após redirecionamento IBM."
+  },
+  {
+    "document_id": "ibm_api_qiskit_quantum_info_Operator",
+    "url": "https://quantum.cloud.ibm.com/docs/en/api/qiskit/2.6/qiskit.quantum_info.Operator",
+    "versao": "Referência solicitada Qiskit 2.6; conferir versão efetiva na página após redirecionamento IBM."
+  },
+  {
+    "document_id": "ibm_api_primitives",
+    "url": "https://quantum.cloud.ibm.com/docs/en/api/qiskit/2.6/primitives",
+    "versao": "Referência solicitada Qiskit 2.6; conferir versão efetiva na página após redirecionamento IBM."
+  },
+  {
+    "document_id": "ibm_api_qasm2",
+    "url": "https://quantum.cloud.ibm.com/docs/en/api/qiskit/2.6/qasm2",
+    "versao": "Referência solicitada Qiskit 2.6; conferir versão efetiva na página após redirecionamento IBM."
+  },
+  {
+    "document_id": "ibm_api_qasm3",
+    "url": "https://quantum.cloud.ibm.com/docs/en/api/qiskit/2.6/qasm3",
+    "versao": "Referência solicitada Qiskit 2.6; conferir versão efetiva na página após redirecionamento IBM."
+  }
+]

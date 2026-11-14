@@ -1,6 +1,30 @@
 name: growup-integrada
 
 services:
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [saida]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+  cache:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru", "--save", "", "--appendonly", "no"]
+    networks: [banco]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
   chroma:
     image: chromadb/chroma:1.5.9
     restart: unless-stopped
@@ -16,9 +40,18 @@ services:
       target: runtime
     restart: unless-stopped
     depends_on:
+      cache:
+        condition: service_healthy
       chroma:
         condition: service_started
     environment:
+      WEB_SEARCH_ENABLED: ${WEB_SEARCH_ENABLED:-1}
+      GEMINI_WEB_MODEL: ${GEMINI_WEB_MODEL:-}
+      KNOWLEDGE_AUTO_SYNC: ${KNOWLEDGE_AUTO_SYNC:-1}
+      KNOWLEDGE_SYNC_INTERVAL_SECONDS: ${KNOWLEDGE_SYNC_INTERVAL_SECONDS:-604800}
+      KNOWLEDGE_PATH: /app/data/conhecimento
+      REDIS_URL: redis://cache:6379/0
+      CACHE_TTL_SECONDS: '3600'
       CHROMA_HOST: chroma
       CHROMA_PORT: "8000"
       CHROMA_SSL: "0"
@@ -31,7 +64,7 @@ services:
       CHROMA_HTTP_TIMEOUT_SECONDS: ${CHROMA_HTTP_TIMEOUT_SECONDS:-30}
       API_TIMEOUT_SECONDS: ${API_TIMEOUT_SECONDS:-60}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
       GEMINI_TIMEOUT_SECONDS: ${GEMINI_TIMEOUT_SECONDS:-40}
       GROWUP_MAX_CONTEXT_CHARS: ${GROWUP_MAX_CONTEXT_CHARS:-12000}
       QISKIT_TIMEOUT_SECONDS: ${QISKIT_TIMEOUT_SECONDS:-30}

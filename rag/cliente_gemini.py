@@ -30,7 +30,7 @@ def gerar_resposta(pergunta: str, contexto: str) -> str:
     # Modelo padrão, configurável pelo arquivo .env.
     modelo = os.getenv(
         "GEMINI_MODEL",
-        "gemini-2.5-flash"
+        "gemini-3.1-flash-lite"
     )
 
     # Combina pergunta e documentação com as instruções.

@@ -25,14 +25,23 @@ LIMITE_ARQUIVO = 256 * 1024
 @asynccontextmanager
 async def lifespan(app):
     await asyncio.to_thread(servicos.inicializar)
-    yield
+    from rag.sincronizar_conhecimento import agendar
+    tarefa = asyncio.create_task(agendar()) if os.getenv("KNOWLEDGE_AUTO_SYNC", "0") == "1" else None
+    try:
+        yield
+    finally:
+        if tarefa:
+            tarefa.cancel()
+            from contextlib import suppress
+            with suppress(asyncio.CancelledError):
+                await tarefa
 
 ERROS = {n: {'model': Erro, 'description': descricao} for n, descricao in {
     400:'Requisição malformada', 404:'Rota inexistente', 405:'Método incorreto',
     413:'Arquivo acima do limite', 415:'Tipo de conteúdo não aceito',
     422:'Entrada inválida', 500:'Falha interna', 502:'Resposta externa inválida',
     503:'Serviço externo indisponível', 504:'Tempo limite excedido'}.items()}
-app = FastAPI(title='GrowUp - API integrada', version='0.3.0', responses=ERROS,
+app = FastAPI(title='GrowUp - API integrada', version='0.4.0', responses=ERROS,
     lifespan=lifespan,
     description='API com ChromaDB remoto, RAG Gemini e otimização Qiskit. Gemini exige GEMINI_API_KEY.')
 app.openapi_version = '3.1.0'
@@ -75,6 +84,13 @@ async def erro_http(request, exc):
 async def servico_indisponivel(request, exc):
     return erro(request,exc.status,'SERVICE_ERROR','O serviço externo não conseguiu atender à solicitação.')
 
+from rag.busca_web import BuscaWebIndisponivel
+
+@app.exception_handler(BuscaWebIndisponivel)
+async def web_indisponivel(request, exc):
+    return erro(request,503,'WEB_SEARCH_UNAVAILABLE',
+                'A busca web não pôde ser concluída. Confira cota, faturamento e suporte ao Google Search no modelo Gemini. Você pode desativar a busca web e tentar somente a base local.')
+
 @app.exception_handler(LLMNaoConfigurada)
 async def llm_ausente(request, exc):
     return erro(request,503,'LLM_NOT_CONFIGURED',
@@ -103,14 +119,18 @@ async def health():
 
 @app.post('/query', response_model=RespostaConsulta)
 async def query(entrada: Consulta, request: Request):
-    """Recupera contexto no ChromaDB e consulta Gemini; sem chave retorna 503 LLM_NOT_CONFIGURED."""
-    resultado = ResultadoConsulta.model_validate(await chamar(servicos.consultar(entrada.input)))
+    """Consulta a base local e, opcionalmente, Google Search. Sem chave: 503 LLM_NOT_CONFIGURED. Busca web indisponível: 503 WEB_SEARCH_UNAVAILABLE."""
+    if entrada.web_search is None:
+        chamada = servicos.consultar(entrada.input) if entrada.top_k == 3 else servicos.consultar(entrada.input, entrada.top_k)
+    else:
+        chamada = servicos.consultar(entrada.input, entrada.top_k, entrada.web_search)
+    resultado = ResultadoConsulta.model_validate(await chamar(chamada))
     return RespostaConsulta(**resultado.model_dump(), request_id=request.state.request_id, mode=servicos.mode)
 
 @app.post('/search', response_model=RespostaBusca)
 async def search(entrada: Busca, request: Request):
     """Recupera seções e fontes no ChromaDB. Resultados não garantem suficiência do contexto."""
-    resultado = ResultadoBusca.model_validate(await chamar(servicos.buscar(entrada.query)))
+    resultado = ResultadoBusca.model_validate(await chamar(servicos.buscar(entrada.query) if entrada.top_k == 3 else servicos.buscar(entrada.query, entrada.top_k)))
     return RespostaBusca(**resultado.model_dump(), request_id=request.state.request_id, mode=servicos.mode)
 
 @app.post('/documents', response_model=RespostaDocumento, status_code=201)

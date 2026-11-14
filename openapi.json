@@ -3,7 +3,7 @@
   "info": {
     "title": "GrowUp - API integrada",
     "description": "API com ChromaDB remoto, RAG Gemini e otimização Qiskit. Gemini exige GEMINI_API_KEY.",
-    "version": "0.3.0"
+    "version": "0.4.0"
   },
   "paths": {
     "/health": {
@@ -128,7 +128,7 @@
     "/query": {
       "post": {
         "summary": "Query",
-        "description": "Recupera contexto no ChromaDB e consulta Gemini; sem chave retorna 503 LLM_NOT_CONFIGURED.",
+        "description": "Consulta a base local e, opcionalmente, Google Search. Sem chave: 503 LLM_NOT_CONFIGURED. Busca web indisponível: 503 WEB_SEARCH_UNAVAILABLE.",
         "operationId": "query_query_post",
         "requestBody": {
           "content": {
@@ -957,6 +957,13 @@
       },
       "Busca": {
         "properties": {
+          "top_k": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Top K",
+            "default": 3
+          },
           "query": {
             "type": "string",
             "maxLength": 2000,
@@ -996,6 +1003,25 @@
       },
       "Consulta": {
         "properties": {
+          "web_search": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Web Search",
+            "description": "Busca Google sob demanda; null usa a configuração do servidor."
+          },
+          "top_k": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Top K",
+            "default": 3
+          },
           "input": {
             "type": "string",
             "maxLength": 30000,
@@ -1089,6 +1115,66 @@
           "content"
         ],
         "title": "Fonte"
+      },
+      "FonteContexto": {
+        "properties": {
+          "document_id": {
+            "type": "string",
+            "title": "Document Id"
+          },
+          "chunk_id": {
+            "type": "string",
+            "title": "Chunk Id"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "local",
+              "web"
+            ],
+            "title": "Origin",
+            "default": "local"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "document_id",
+          "chunk_id",
+          "source",
+          "content"
+        ],
+        "title": "FonteContexto"
       },
       "ListaDocumentos": {
         "properties": {
@@ -1290,13 +1376,41 @@
       },
       "RespostaConsulta": {
         "properties": {
+          "web_status": {
+            "type": "string",
+            "enum": [
+              "disabled",
+              "used",
+              "not_used"
+            ],
+            "title": "Web Status",
+            "default": "disabled"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "search_suggestions_html": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Search Suggestions Html"
+          },
           "response": {
             "type": "string",
             "title": "Response"
           },
           "sources": {
             "items": {
-              "$ref": "#/components/schemas/Fonte"
+              "$ref": "#/components/schemas/FonteContexto"
             },
             "type": "array",
             "title": "Sources"

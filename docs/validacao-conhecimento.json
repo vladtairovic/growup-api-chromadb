@@ -1,0 +1,45 @@
+{
+  "chunks": 5073,
+  "documents": 23,
+  "max_chunk_tokens": 110,
+  "queries": [
+    {
+      "query": "Como parametrizar um circuito com Parameter e assign_parameters?",
+      "status": 200,
+      "sources": [
+        "https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.circuit.QuantumCircuit",
+        "https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.circuit.Parameter"
+      ]
+    },
+    {
+      "query": "Como medir qubits?",
+      "status": 200,
+      "sources": [
+        "https://quantum.cloud.ibm.com/docs/en/qiskit/construct-circuits",
+        "https://quantum.cloud.ibm.com/docs/en/qiskit/measure-qubits",
+        "https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.circuit.QuantumCircuit"
+      ]
+    },
+    {
+      "query": "Como calcular probabilidades usando Statevector?",
+      "status": 200,
+      "sources": [
+        "https://quantum.cloud.ibm.com/docs/en/qiskit/simulate-with-qiskit-sdk-primitives",
+        "https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.quantum_info.Statevector"
+      ]
+    }
+  ],
+  "web": {
+    "http_status": 503,
+    "code": "WEB_SEARCH_UNAVAILABLE",
+    "web_status": null,
+    "sources_count": 0
+  },
+  "sync": {
+    "status": "ok",
+    "sources": 21,
+    "unchanged": 21,
+    "collection_chunks": 5073,
+    "finished_at": "2026-11-13T23:48:40.036815+00:00"
+  }
+}

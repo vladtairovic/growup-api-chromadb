@@ -26,11 +26,17 @@ def criar_embeddings():
     # A mesma função é usada na escrita e na consulta. Nenhum embedding é gerado
     # pelo servidor e não há fallback para o modelo padrão do ChromaDB.
     def gerar(textos):
+        from .cache import recuperar, salvar
+        vetor = recuperar(textos, MODELO_EMBEDDINGS)
+        if vetor is not None:
+            return vetor
         with MODELO_LOCK:
-            return obter_modelo().encode(
+            vetor = obter_modelo().encode(
                 textos, normalize_embeddings=True, convert_to_numpy=True,
                 show_progress_bar=False,
             ).tolist()
+        salvar(textos, MODELO_EMBEDDINGS, vetor)
+        return vetor
     return gerar
 
 

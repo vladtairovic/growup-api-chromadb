@@ -8,6 +8,7 @@ from contratos import Documento, Fonte, ResultadoBusca
 from rag import busca_chromadb, documentos
 from rag.banco import obter_cliente, obter_colecao, ColecaoIncompativel
 from rag.configuracao import criar_embeddings
+from rag.busca_web import BuscaWebIndisponivel
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +49,7 @@ class ServicosIntegrados:
     async def _executar(self, funcao, *args):
         try:
             return await asyncio.to_thread(funcao, *args)
-        except DocumentoInvalido:
+        except (DocumentoInvalido, BuscaWebIndisponivel):
             raise
         except (KeyError, TypeError, ColecaoIncompativel) as erro:
             logger.error("Dados do serviço fora do contrato: %s", type(erro).__name__)
@@ -57,8 +58,8 @@ class ServicosIntegrados:
             logger.error("Falha na dependência: %s", type(erro).__name__)
             raise FalhaServico(status=503) from erro
 
-    async def buscar(self, query):
-        resultados = await self._executar(busca_chromadb.buscar_documentos, query)
+    async def buscar(self, query, top_k=3):
+        resultados = await self._executar(busca_chromadb.buscar_documentos, query) if top_k == 3 else await self._executar(busca_chromadb.buscar_documentos, query, top_k)
         try:
             fontes = [Fonte(
                 document_id=r["metadados"]["document_id"], chunk_id=r["id"],
@@ -71,11 +72,11 @@ class ServicosIntegrados:
             status="ok" if fontes else "insufficient_context",
         )
 
-    async def consultar(self, texto):
+    async def consultar(self, texto, top_k=3, web_search=None):
         if not os.getenv("GEMINI_API_KEY", "").strip():
             raise LLMNaoConfigurada()
         from rag.pipeline_gemini import responder
-        return await self._executar(responder, texto)
+        return await self._executar(responder, texto, top_k, web_search)
 
     async def adicionar_documento(self, filename, content):
         def adicionar():

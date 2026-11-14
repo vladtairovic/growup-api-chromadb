@@ -34,3 +34,8 @@ documentos/chunks*.json
 dist
 build
 artifacts/
+
+node_modules/
+.next/
+frontend/node_modules/
+frontend/.next/
